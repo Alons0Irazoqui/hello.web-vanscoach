@@ -29,8 +29,14 @@
   <!-- ===== PANTALLA DE CARGA ===== -->
   <div id="loading-screen" aria-hidden="true">
     <div class="loading-inner">
-      <img src="imagenes/logo-nobg.png" alt="" class="loading-logo">
-      <div class="loading-bar"><span></span></div>
+      <div class="loading-ring">
+        <svg class="loading-ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="loading-ring-track" cx="60" cy="60" r="52"></circle>
+          <circle class="loading-ring-progress" id="loading-ring-progress" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <img src="imagenes/logo-nobg.png" alt="" class="loading-logo">
+      </div>
+      <p class="loading-percent"><span id="loading-percent-value">0</span>%</p>
       <p class="loading-text">Preparando su experiencia de viaje&hellip;</p>
     </div>
   </div>
@@ -72,16 +78,19 @@
 
     <!-- ===== HERO ===== -->
     <section class="hero" id="inicio">
-      <div class="hero-media" aria-hidden="true">
-        <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2000&auto=format&fit=crop" alt="" class="hero-img">
+      <div class="hero-media hero-media-fixed" style="background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2000&auto=format&fit=crop');" aria-hidden="true">
         <div class="hero-overlay"></div>
+        <canvas class="hero-particles" id="hero-particles"></canvas>
       </div>
 
       <div class="container hero-content">
         <img src="imagenes/logo-nobg.png" alt="Vans Coach" class="hero-logo" data-reveal>
 
         <p class="eyebrow" data-reveal>Atención inmediata · Visa de Emergencia a Estados Unidos</p>
-        <h1 data-reveal>Cuando el tiempo urge,<br><span class="text-accent">su visa no puede esperar.</span></h1>
+        <h1 class="hero-title" data-reveal>
+          Su visa de emergencia,<br>
+          gestionada con <span class="type-cycle"><span id="hero-type-word" aria-hidden="true"></span><span class="type-cursor" aria-hidden="true"></span></span><span class="sr-only">rapidez.</span>
+        </h1>
         <p class="hero-lead" data-reveal>
           Gestionamos su <strong>Visa de Emergencia</strong> en tan solo <strong>3 días</strong> para que pueda
           estar junto a un familiar en fase terminal o despedirse de un ser querido que ha fallecido en
@@ -269,8 +278,7 @@
 
     <!-- ===== CTA FINAL / CONTACTO ===== -->
     <section class="cta-contact" id="contacto">
-      <div class="hero-media" aria-hidden="true">
-        <img src="https://images.unsplash.com/photo-1440778303588-435521a205bc?q=80&w=2000&auto=format&fit=crop" alt="" class="hero-img">
+      <div class="hero-media hero-media-fixed" style="background-image: url('https://images.unsplash.com/photo-1440778303588-435521a205bc?q=80&w=2000&auto=format&fit=crop');" aria-hidden="true">
         <div class="hero-overlay hero-overlay-strong"></div>
       </div>
 

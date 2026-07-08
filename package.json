@@ -1,0 +1,21 @@
+{
+  "name": "vans-coach",
+  "version": "1.0.0",
+  "description": "Informe de proyecto para el desarrollador. Aquí está toda la información del negocio necesaria para construir la landing page sobre la plantilla HTML.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alons0Irazoqui/hello.web-vanscoach.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Alons0Irazoqui/hello.web-vanscoach/issues"
+  },
+  "homepage": "https://github.com/Alons0Irazoqui/hello.web-vanscoach#readme"
+}

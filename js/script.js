@@ -19,13 +19,36 @@
     const loadingScreen = document.getElementById("loading-screen");
     if (!loadingScreen) return;
 
-    const MIN_VISIBLE_MS = 1100;
+    const MIN_VISIBLE_MS = 1900;
+    const CIRCUMFERENCE = 2 * Math.PI * 52;
+    const ring = document.getElementById("loading-ring-progress");
+    const percentEl = document.getElementById("loading-percent-value");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const start = Date.now();
+    let rafId = null;
+
+    const paint = (fraction) => {
+      if (ring) ring.style.strokeDashoffset = String(CIRCUMFERENCE * (1 - fraction));
+      if (percentEl) percentEl.textContent = Math.round(fraction * 100).toString();
+    };
+
+    if (reduceMotion) {
+      paint(1);
+    } else {
+      const tick = () => {
+        const progress = Math.min((Date.now() - start) / MIN_VISIBLE_MS, 1);
+        paint(1 - Math.pow(1 - progress, 2));
+        if (progress < 1) rafId = requestAnimationFrame(tick);
+      };
+      rafId = requestAnimationFrame(tick);
+    }
 
     const hide = () => {
       const elapsed = Date.now() - start;
       const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
       window.setTimeout(() => {
+        if (rafId) cancelAnimationFrame(rafId);
+        paint(1);
         loadingScreen.classList.add("is-hidden");
         document.body.classList.remove("is-loading");
         window.setTimeout(() => loadingScreen.remove(), 800);
@@ -37,7 +60,7 @@
     } else {
       window.addEventListener("load", hide, { once: true });
       // Fallback por si "load" tarda demasiado (imágenes externas lentas).
-      window.setTimeout(hide, 4000);
+      window.setTimeout(hide, 5500);
     }
   };
 
@@ -270,21 +293,175 @@
   };
 
   /* ============================================================
-     Parallax sutil del hero (respeta reduced-motion)
+     Partículas de fondo del hero (canvas, red de nodos sutil)
      ============================================================ */
-  const initParallax = () => {
+  const initHeroParticles = () => {
+    const canvas = document.getElementById("hero-particles");
+    const hero = document.querySelector(".hero");
+    if (!canvas || !hero) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const heroImg = document.querySelector(".hero .hero-img");
-    if (!heroImg) return;
 
-    window.addEventListener(
-      "scroll",
-      () => {
-        const offset = Math.min(window.scrollY * 0.15, 80);
-        heroImg.style.transform = `scale(1.06) translateY(${offset}px)`;
+    const ctx = canvas.getContext("2d");
+    const MAX_DIST = 130;
+    const DOT_COLORS = ["255, 255, 255", "245, 185, 63"];
+
+    let w = 0;
+    let h = 0;
+    let particles = [];
+    let rafId = null;
+    let running = false;
+
+    const createParticle = () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      r: Math.random() * 1.6 + 0.6,
+      color: DOT_COLORS[Math.random() < 0.85 ? 0 : 1],
+    });
+
+    const setup = () => {
+      const rect = hero.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = rect.width;
+      h = rect.height;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const count = Math.max(70, Math.min(170, Math.round((w * h) / 8000)));
+      particles = Array.from({ length: count }, createParticle);
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = w;
+        else if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h;
+        else if (p.y > h) p.y = 0;
+      });
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const dx = p.x - q.x;
+          const dy = p.y - q.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < MAX_DIST) {
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.14 * (1 - dist / MAX_DIST)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      particles.forEach((p) => {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${p.color}, 0.55)`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    };
+
+    const loop = () => {
+      draw();
+      rafId = requestAnimationFrame(loop);
+    };
+
+    const start = () => {
+      if (running) return;
+      running = true;
+      rafId = requestAnimationFrame(loop);
+    };
+
+    const stop = () => {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+    };
+
+    setup();
+    start();
+
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(setup, 150);
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => (entry.isIntersecting ? start() : stop()));
       },
-      { passive: true }
-    );
+      { threshold: 0 }
+    ).observe(hero);
+  };
+
+  /* ============================================================
+     Efecto máquina de escribir en el titular del hero
+     ============================================================ */
+  const initHeroTypewriter = () => {
+    const el = document.getElementById("hero-type-word");
+    if (!el) return;
+
+    const words = ["rapidez", "humanidad", "transparencia", "urgencia", "cercanía"];
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.textContent = words[0];
+      return;
+    }
+
+    const TYPE_SPEED = 75;
+    const DELETE_SPEED = 40;
+    const HOLD_MS = 1600;
+    const GAP_MS = 400;
+
+    let wordIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+
+    const tick = () => {
+      const word = words[wordIndex];
+
+      if (!deleting) {
+        charIndex++;
+        el.textContent = word.slice(0, charIndex);
+        if (charIndex === word.length) {
+          deleting = true;
+          window.setTimeout(tick, HOLD_MS);
+          return;
+        }
+        window.setTimeout(tick, TYPE_SPEED);
+        return;
+      }
+
+      charIndex--;
+      el.textContent = word.slice(0, charIndex);
+      if (charIndex === 0) {
+        deleting = false;
+        wordIndex = (wordIndex + 1) % words.length;
+        window.setTimeout(tick, GAP_MS);
+        return;
+      }
+      window.setTimeout(tick, DELETE_SPEED);
+    };
+
+    tick();
   };
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -298,6 +475,7 @@
     initBackToTop();
     initWhatsApp();
     initYear();
-    initParallax();
+    initHeroParticles();
+    initHeroTypewriter();
   });
 })();
