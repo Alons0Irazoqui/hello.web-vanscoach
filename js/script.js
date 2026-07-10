@@ -5,7 +5,7 @@
      Configuración de contacto — reemplazar con los datos reales.
      ============================================================ */
   const CONFIG = {
-    whatsappNumber: "9195139191",
+    whatsappNumber: "6195139191",
     whatsappDefaultMessage: "Hola Vans Coach, necesito información sobre la Visa de Emergencia.",
   };
 
