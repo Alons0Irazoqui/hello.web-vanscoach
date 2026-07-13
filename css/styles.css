@@ -623,6 +623,29 @@ h3 { font-size: clamp(1.15rem, 2vw, 1.4rem); }
 .testimonial-author strong { display: block; color: var(--navy-900); }
 .testimonial-author span { font-size: 0.82rem; color: var(--ink-500); }
 
+.testimonial-video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+.testimonial-video-card {
+  aspect-ratio: 9 / 16;
+  background: var(--navy-950);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.testimonial-video-card video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--navy-950);
+}
+@media (max-width: 720px) {
+  .testimonial-video-grid { grid-template-columns: 1fr; max-width: 340px; margin-inline: auto; }
+}
+
 /* ===== Acordeón FAQ ===== */
 .accordion { display: flex; flex-direction: column; gap: 14px; }
 .accordion-item {
